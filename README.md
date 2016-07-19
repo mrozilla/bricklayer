@@ -1,17 +1,17 @@
-# bricks
+# bricklayer
 
 Simple gulp-based static site build tool. Compiles modular HTML, Sass, and JS.
 
 ## Usage 
 
-To use bricks, create a folder for you project, clone the repo, and run
+To use bricklayer, create a folder for your project, clone the repo, and run
 ```
 npm install
 ```
 
 ## Development
 
-For development purposes bricks comes with a set of gulp tasks to speed up your building process. The HTML files are build from the partials. The Sass base gets compiled into ```main.css``` The JS files get compiled into ```main.js``` and minified using UglifyJS. A browser-sync server is fired up. Any change to the ```app``` files triggers a browser-sync update.
+For development purposes bricklayer comes with a set of gulp tasks to speed up your building process. The HTML files are build from the partials. The Sass base gets compiled into ```main.css``` The JS files get compiled into ```main.js``` and minified using UglifyJS. A browser-sync server is fired up. Any change to the ```app``` files triggers a browser-sync update.
 
 To start the development server, simply run
 ```
@@ -36,6 +36,7 @@ The file structure is as following:
 ```
 .
 │   gulpfile.babel.js
+│   ...
 │
 ├───app
 │   ├───images
@@ -79,7 +80,7 @@ const outputJS          = './dist/js';
 
 ## Production
 
-For production purposes bricks comes with a set of gulp tasks to prepare the files to be deployed. The HTML files are build from the partials and renamed to ```.php```. The ```dist``` folder gets wiped to avoid any artifacts. The Sass base gets compiled into ```main.css``` which gets reduced and minified using unCSS and CSSnano. The JS files get compiled into ```main.js``` and minified using UglifyJS. The images are optimised using gulp-imagemin. The fonts are moved to the ```dist``` folder.
+For production purposes bricklayer comes with a set of gulp tasks to prepare the files to be deployed. The HTML files are build from the partials and renamed to ```.php```. The ```dist``` folder gets wiped to avoid any artifacts. The Sass base gets compiled into ```main.css``` which gets reduced and minified using unCSS and CSSnano. The JS files get compiled into ```main.js``` and minified using UglifyJS. The images are optimised using gulp-imagemin. The fonts are moved to the ```dist``` folder.
 
 To create the production files, run
 ```
