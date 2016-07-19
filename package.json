@@ -1,8 +1,8 @@
 {
-  "name": "bricks",
+  "name": "bricklayer",
   "version": "0.1.0",
   "description": "gulp.js static page builder",
-  "main": "Gulpfile.js",
+  "main": "gulpfile.babel.js",
   "scripts": {},
   "author": "@mrozilla",
   "license": "MIT",
@@ -38,10 +38,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mrozilla/bricks.git"
+    "url": "git+https://github.com/mrozilla/bricklayer.git"
   },
   "bugs": {
-    "url": "https://github.com/mrozilla/origin/issues"
+    "url": "https://github.com/mrozilla/bricklayer/issues"
   },
-  "homepage": "https://github.com/mrozilla/origin#readme"
+  "homepage": "https://github.com/mrozilla/bricklayer#readme"
 }
