@@ -5,10 +5,20 @@
 'use strict';
 
 // TODO figure out css.map not working
+// TODO fix build task
+// TODO figure out error catching
 
+// =============================================================================
 // Dependencies
-import gulp 			from 'gulp';
+// =============================================================================
 
+// General dependencies
+import gulp 			from 'gulp';
+import plumber			from 'gulp-plumber';
+import notify			from 'gulp-notify';
+import beep 			from 'beepbeep';
+
+// Develop dependencies
 import autoprefixer 	from 'gulp-autoprefixer';
 import babel			from 'gulp-babel';
 import sync 			from 'browser-sync';
@@ -18,15 +28,27 @@ import include 			from 'gulp-file-include';
 import sass 			from 'gulp-sass';
 import sourcemaps 		from 'gulp-sourcemaps';
 
+// Production dependencies
 import del 				from 'del';
+import htmlmin			from 'gulp-htmlmin';
 import imagemin 		from 'gulp-imagemin';
+import inline			from 'gulp-inline-css';
+import vinylPaths		from 'vinyl-paths';
 import nano 			from 'gulp-cssnano';
 import rename 			from 'gulp-rename';
 import sequence			from 'run-sequence';
 import uglify			from 'gulp-uglify';
 import uncss 			from 'gulp-uncss';
 
+// Deploy dependencies
+import gutil			from 'gulp-util';
+import ftp				from 'vinyl-ftp';
+
+// =============================================================================
 // File structure
+// =============================================================================
+
+// Input files
 const inputHTML     	= './app/**/*.html';
 const inputPartials 	= './app/**/*.tpl';
 const inputSass     	= './app/**/*.scss';
@@ -34,15 +56,43 @@ const inputJS       	= './app/**/*.js';
 const inputFonts		= './app/fonts/**/*';
 const inputImages 		= './app/images/**/*.+(png|jpg|gif|svg)';
 
+// Output files
 const output        	= './dist';
 const outputPHP			= './dist/**/*.php';
 const outputJS 			= './dist/js';
 
+// =============================================================================
 // Options
+// =============================================================================
+
+// Sass options
 const sassOptions = {
 	errLogToConsole: true,
 	outputStyle: 'expanded'
 };
+
+// Plumber options
+const onError = function(err) { // TODO ES6-ise
+    notify.onError({
+        title: "BUILD FAILED",
+        message: err.toString()
+    })(err);
+    beep();
+    this.emit('end');
+};
+
+// Deploy options
+const user = process.env.USER;    // Taken from the terminal
+const password = process.env.PWD; // Taken from the terminal
+
+const conn = ftp.create({
+	host: host, // Replace with your host address
+	port: port || 21, // Replace with the port your host's ftp server is listening
+	user: user,
+	password: password,
+	parallel: 10,
+	log: gutil.log
+});
 
 // =============================================================================
 // Main tasks
@@ -53,6 +103,12 @@ gulp.task('default', ['watch']);
 
 // Production task
 gulp.task('prod', ['build']);
+
+// Clean up task
+gulp.task('clean', ['clean']);
+
+// Deploy task
+gulp.task('deploy', ['deploy']);
 
 // =============================================================================
 // Development Tasks
@@ -71,10 +127,12 @@ gulp.task('sync', () => {
 gulp.task('html', () => {
 	return gulp
 		.src(inputHTML)
-		// .pipe(changed(output)) // Turned off for now, doesn't work well with .tpl files
+		.pipe(plumber({errorHandler: onError}))
+		// .pipe(changed(output)) // Removed for now, collides with gulp-include
 		.pipe(include({
 			basepath: '@root'
 		}))
+		.pipe(htmlmin({collapseWhitespace: true}))
 		.pipe(gulp.dest(output))
 		.pipe(sync.reload({
 			stream: true
@@ -85,8 +143,9 @@ gulp.task('html', () => {
 gulp.task('sass', () => {
 	return gulp
 		.src(inputSass)
+		.pipe(plumber({errorHandler: onError}))
 		.pipe(sourcemaps.init())
-		.pipe(sass(sassOptions).on('error', sass.logError))
+		.pipe(sass(sassOptions)
 		.pipe(autoprefixer())
 		.pipe(sourcemaps.write('.'))
 		.pipe(gulp.dest(output))
@@ -99,6 +158,7 @@ gulp.task('sass', () => {
 gulp.task('jss', () => {
 	return gulp
 		.src(inputJS)
+		.pipe(plumber({errorHandler: onError}))
 		.pipe(sourcemaps.init())
 		.pipe(babel({
 			presets: ['es2015']
@@ -111,12 +171,22 @@ gulp.task('jss', () => {
 		}));
 });
 
+// Move images
+gulp.task('img', () => {
+	return gulp
+		.src(inputImages)
+		.pipe(plumber({errorHandler: onError}))
+		.pipe(changed(outputImages))
+		.pipe(gulp.dest(outputImages))
+});
+
 // Watch for changes
-gulp.task('watch', ['sync', 'html', 'sass', 'jss'], () => {
+gulp.task('watch', ['sync', 'html', 'sass', 'jss', 'img'], () => {
 	gulp.watch(inputHTML, ['html']);
 	gulp.watch(inputPartials, ['html']);
 	gulp.watch(inputSass, ['sass']);
-	gulp.watch(inputJS, ['jss']); 
+	gulp.watch(inputJS, ['jss']);
+	gulp.watch(inputImages, ['img']);
 });
 
 // =============================================================================
@@ -132,11 +202,11 @@ gulp.task('del', () => {
 // Build php files from partials
 gulp.task('php', () => {
 	return gulp
-		.src(inputHTML)
-		.pipe(include({
-			basepath: '@root'
-		}))
-		.pipe(rename( (path) => {
+		.src(outputHTML)
+		.pipe(plumber({errorHandler: onError}))
+		// .pipe(inline()) // TODO gulp-css-inline throws because of uncss
+		.pipe(vinylPaths(del))
+		.pipe(rename((path) => {
 			path.extname = '.php'
 		}))
 		.pipe(gulp.dest(output));
@@ -146,10 +216,11 @@ gulp.task('php', () => {
 gulp.task('css', () => {
     return gulp
     	.src(inputSass)
+    	.pipe(plumber({errorHandler: onError}))
         .pipe(sass())
         .pipe(autoprefixer())
         .pipe(uncss({
-        	html: [outputPHP]
+        	html: [outputHTML] // TODO ignore php, currently throws an Parse error on php in the .html files
         }))
         .pipe(nano())
         .pipe(gulp.dest(output));
@@ -159,6 +230,7 @@ gulp.task('css', () => {
 gulp.task('js', () => {
 	return gulp
 		.src(inputJS)
+		.pipe(plumber({errorHandler: onError}))
 		.pipe(babel({
 			presets: ['es2015']
 		}))
@@ -171,6 +243,7 @@ gulp.task('js', () => {
 gulp.task('fonts', () => {
 	return gulp
 		.src(inputFonts)
+		.pipe(plumber({errorHandler: onError}))
 		.pipe(gulp.dest(output));
 });
 
@@ -184,10 +257,26 @@ gulp.task('images', () => {
 
 // Build the distribution files
 gulp.task('build', (callback) => {
-	sequence('del', 'php',
-		['css', 'fonts', 'js', 'images'],
+	sequence(
+		'clean', 
+		'html',
+		'css', 
+		['fonts', 'js', 'images', 'php'],
 	callback
 	)
 });
+
+// =============================================================================
+// Deploy tasks
+// =============================================================================
+
+// Create an ftp connection and upload the files that are newer than those on the server
+// Usage: `USER=someuser PWD=somepwd gulp deploy`
+gulp.task('deploy', () => {
+    return gulp.src(outputDeploy, {base: output, buffer: false})
+        .pipe(conn.newer('/www')) // only upload newer files
+        .pipe(conn.dest('/www'))
+});
+
 
 
