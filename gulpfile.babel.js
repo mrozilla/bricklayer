@@ -5,8 +5,6 @@
 'use strict';
 
 // TODO figure out css.map not working
-// TODO fix build task
-// TODO figure out error catching
 
 // =============================================================================
 // Dependencies
@@ -49,6 +47,7 @@ import ftp				from 'vinyl-ftp';
 // =============================================================================
 
 // Input files
+const input				= './app/'
 const inputHTML     	= './app/**/*.html';
 const inputPartials 	= './app/**/*.tpl';
 const inputSass     	= './app/**/*.scss';
@@ -57,9 +56,9 @@ const inputFonts		= './app/fonts/**/*';
 const inputImages 		= './app/images/**/*.+(png|jpg|gif|svg)';
 
 // Output files
-const output        	= './dist';
-const outputPHP			= './dist/**/*.php';
-const outputJS 			= './dist/js';
+const output        	= './dist/';
+const outputHTML		= './dist/**/*.html';
+const outputJS			= './dist/**/*.js';
 
 // =============================================================================
 // Options
@@ -86,8 +85,8 @@ const user = process.env.USER;    // Taken from the terminal
 const password = process.env.PWD; // Taken from the terminal
 
 const conn = ftp.create({
-	host: host, // Replace with your host address
-	port: port || 21, // Replace with the port your host's ftp server is listening
+	host: 'host', // Replace with your host's address
+	port: 'port', // Replace with the port your host's ftp server is listening (21 is the default)
 	user: user,
 	password: password,
 	parallel: 10,
@@ -145,7 +144,7 @@ gulp.task('sass', () => {
 		.src(inputSass)
 		.pipe(plumber({errorHandler: onError}))
 		.pipe(sourcemaps.init())
-		.pipe(sass(sassOptions)
+		.pipe(sass(sassOptions))
 		.pipe(autoprefixer())
 		.pipe(sourcemaps.write('.'))
 		.pipe(gulp.dest(output))
@@ -165,7 +164,7 @@ gulp.task('jss', () => {
 		}))
 		.pipe(concat('main.js'))
 		.pipe(sourcemaps.write('.'))
-		.pipe(gulp.dest(outputJS))
+		.pipe(gulp.dest(output + 'js'))
 		.pipe(sync.reload({
 			stream: true
 		}));
@@ -176,8 +175,8 @@ gulp.task('img', () => {
 	return gulp
 		.src(inputImages)
 		.pipe(plumber({errorHandler: onError}))
-		.pipe(changed(outputImages))
-		.pipe(gulp.dest(outputImages))
+		.pipe(changed(output + 'images'))
+		.pipe(gulp.dest(output + 'images'))
 });
 
 // Watch for changes
@@ -194,7 +193,7 @@ gulp.task('watch', ['sync', 'html', 'sass', 'jss', 'img'], () => {
 // =============================================================================
 
 // Delete the dist folder
-gulp.task('del', () => {
+gulp.task('clean', () => {
 	return del
 		.sync(output);
 });
@@ -236,7 +235,7 @@ gulp.task('js', () => {
 		}))
 		.pipe(concat('main.js'))
 		.pipe(uglify())
-		.pipe(gulp.dest(outputJS))
+		.pipe(gulp.dest(output + 'js'))
 });
 
 // Copy fonts
@@ -261,7 +260,7 @@ gulp.task('build', (callback) => {
 		'clean', 
 		'html',
 		'css', 
-		['fonts', 'js', 'images', 'php'],
+		['fonts', 'js','php', 'images'],
 	callback
 	)
 });
@@ -273,7 +272,7 @@ gulp.task('build', (callback) => {
 // Create an ftp connection and upload the files that are newer than those on the server
 // Usage: `USER=someuser PWD=somepwd gulp deploy`
 gulp.task('deploy', () => {
-    return gulp.src(outputDeploy, {base: output, buffer: false})
+    return gulp.src(output + '**/*', {base: output, buffer: false})
         .pipe(conn.newer('/www')) // only upload newer files
         .pipe(conn.dest('/www'))
 });
