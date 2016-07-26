@@ -19,12 +19,12 @@ import beep 			from 'beepbeep';
 // Develop dependencies
 import autoprefixer 	from 'gulp-autoprefixer';
 import babel			from 'gulp-babel';
-import sync 			from 'browser-sync';
 import changed 			from 'gulp-changed';
 import concat 		    from 'gulp-concat';
 import include 			from 'gulp-file-include';
 import sass 			from 'gulp-sass';
 import sourcemaps 		from 'gulp-sourcemaps';
+import sync 			from 'browser-sync';
 
 // Production dependencies
 import del 				from 'del';
