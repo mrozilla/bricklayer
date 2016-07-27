@@ -13,6 +13,7 @@
 # Folders
 stylesheets/.sass-cache/
 /node_modules/
+/dist/
 
 #Visual Studio files
 *.[Oo]bj
