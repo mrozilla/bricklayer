@@ -40,6 +40,15 @@ The partials files are ending in ```.tpl``` and are sourced ```@root``` by defau
 ```
 You can pass props to the partial call provided they are included in the ```.tpl``` file:
 ```
+// head.tpl
+<head>
+	<title>@@title</title>
+    <meta name="description" content="@@description">
+</head>
+})
+```
+```
+// index.html
 @@include('app/partials/head.tpl', {
     "title": "Home page",
     "description": "I am a main page"
