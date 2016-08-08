@@ -219,7 +219,8 @@ gulp.task('css', () => {
         .pipe(sass())
         .pipe(autoprefixer())
         .pipe(uncss({
-        	html: [outputHTML] // TODO ignore php, currently throws an Parse error on php in the .html files
+        	html: [outputHTML], // TODO ignore php, currently throws an Parse error php in the .html files
+        	ignore: ['.*\.is--.*']
         }))
         .pipe(nano())
         .pipe(gulp.dest(output));
