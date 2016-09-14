@@ -34,6 +34,7 @@ import inline			from 'gulp-inline-css';
 import vinylPaths		from 'vinyl-paths';
 import nano 			from 'gulp-cssnano';
 import rename 			from 'gulp-rename';
+import selectors		from 'gulp-selectors';
 import sequence			from 'run-sequence';
 import uglify			from 'gulp-uglify';
 import uncss 			from 'gulp-uncss';
@@ -224,6 +225,15 @@ gulp.task('css', () => {
         }))
         .pipe(nano())
         .pipe(gulp.dest(output));
+});
+
+gulp.task('selectors', () => {
+	return gulp
+		.src([outputHTML, outputCSS]) // TODO figure out sources
+		.pipe(selectors.run())
+		.pipe(gulp.dest((file) => {
+    		return file.base;
+    	}));
 });
 
 // Compile minified js
