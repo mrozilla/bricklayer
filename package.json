@@ -2,9 +2,14 @@
   "name": "bricklayer",
   "version": "0.2.0",
   "description": "gulp.js static page builder",
+  "repository": "https://github/mrozilla/bricklayer",
   "main": "gulpfile.babel.js",
   "scripts": {},
-  "author": "@mrozilla",
+  "author": {
+    "name": "Jan Hruby",
+    "email": "jan@mrozilla.cz",
+    "url": "http://mrozilla.cz"
+  },
   "license": "MIT",
   "dependencies": {
     "gulp": "^3.9.1"
