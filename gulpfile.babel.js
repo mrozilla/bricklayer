@@ -34,7 +34,6 @@ import inline			from 'gulp-inline-css';
 import vinylPaths		from 'vinyl-paths';
 import nano 			from 'gulp-cssnano';
 import rename 			from 'gulp-rename';
-import selectors		from 'gulp-selectors';
 import sequence			from 'run-sequence';
 import uglify			from 'gulp-uglify';
 import uncss 			from 'gulp-uncss';
@@ -87,7 +86,7 @@ const password = process.env.PWD; // Taken from the terminal
 
 const conn = ftp.create({
 	host: 'host', // Replace with your host's address
-	port: 'port', // Replace with the port your host's ftp server is listening (21 is the default)
+	port: 21, // Replace with the port your host's ftp server is listening (21 is the default)
 	user: user,
 	password: password,
 	parallel: 10,
@@ -221,19 +220,10 @@ gulp.task('css', () => {
         .pipe(autoprefixer())
         .pipe(uncss({
         	html: [outputHTML], // TODO ignore php, currently throws an Parse error php in the .html files
-        	ignore: ['.*\.is--.*']
+        	ignore: [new RegExp('.*\.is--.*')]
         }))
         .pipe(nano())
         .pipe(gulp.dest(output));
-});
-
-gulp.task('selectors', () => {
-	return gulp
-		.src([outputHTML, outputCSS]) // TODO figure out sources
-		.pipe(selectors.run())
-		.pipe(gulp.dest((file) => {
-    		return file.base;
-    	}));
 });
 
 // Compile minified js
@@ -284,6 +274,7 @@ gulp.task('build', (callback) => {
 // Usage: `USER=someuser PWD=somepwd gulp deploy`
 gulp.task('deploy', () => {
     return gulp.src(output + '**/*', {base: output, buffer: false})
+        .pipe(plumber({errorHandler: onError}))
         .pipe(conn.newer('/www')) // only upload newer files
         .pipe(conn.dest('/www'))
 });
